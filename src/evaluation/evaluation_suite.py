@@ -10,16 +10,26 @@ Natural Language Relevance, Repetition, Hallucination, OOD Wording
 All tests use deterministic evaluation where possible.
 """
 
+import os
+import sys
+
 import torch
 import json
-import os
 from datetime import datetime
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import TOKENIZER_PATH
+
 from model import SmallEnglishLLM, ModelConfig
 
 
 class EvaluationSuite:
-    def __init__(self, checkpoint_path, tokenizer_path="tokenizer.json", device="cuda"):
+    def __init__(self, checkpoint_path, tokenizer_path=TOKENIZER_PATH, device="cuda"):
         self.checkpoint_path = checkpoint_path
         self.tokenizer = Tokenizer.from_file(tokenizer_path)
         self.config = ModelConfig()
@@ -38,9 +48,17 @@ class EvaluationSuite:
         }
         
     def generate(self, prompt, max_new_tokens=80, temperature=0.7, top_k=40, top_p=None):
-        """Generate text with various sampling strategies."""
+        """Generate text, decoding ONLY the newly generated tokens.
+
+        IMPORTANT FIX (2026-08-12): the previous implementation decoded the
+        full context including the prompt, and the ByteLevel decode inserted
+        a leading space so `full.startswith(prompt)` failed. Keyword checks
+        then matched the echoed prompt, inflating scores to fake 100%.
+        Now only the generated continuation is decoded and returned.
+        """
         encoded = self.tokenizer.encode(prompt)
         input_ids = torch.tensor([encoded.ids], dtype=torch.long, device=self.device)
+        prompt_len = input_ids.shape[1]
         
         with torch.no_grad():
             for _ in range(max_new_tokens):
@@ -73,15 +91,12 @@ class EvaluationSuite:
                 if next_token.item() == 3:  # EOS
                     break
                     
-        generated_ids = input_ids[0].tolist()
+        generated_ids = input_ids[0, prompt_len:].tolist()
         return self.tokenizer.decode(generated_ids)
     
     def get_continuation(self, prompt, **gen_kwargs):
         """Get only the generated continuation, not the prompt."""
-        full = self.generate(prompt, **gen_kwargs)
-        if full.startswith(prompt):
-            return full[len(prompt):].strip()
-        return full.strip()
+        return self.generate(prompt, **gen_kwargs).strip()
     
     def get_next_token_probs(self, prompt):
         """Get probability distribution over next token."""
@@ -483,7 +498,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("checkpoint", help="Path to checkpoint .pt file")
-    parser.add_argument("--tokenizer", default="tokenizer.json", help="Tokenizer path")
+    parser.add_argument("--tokenizer", default=TOKENIZER_PATH, help="Tokenizer path")
     parser.add_argument("--output", help="Output JSON file for results")
     args = parser.parse_args()
     

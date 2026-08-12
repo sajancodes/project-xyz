@@ -1,6 +1,15 @@
+import os
+import sys
 import time
 import torch
 from torch.optim import AdamW
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import pretrain_checkpoint
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -20,7 +29,7 @@ SMOKE_TEST_STEPS = 100
 
 LOG_EVERY = 10
 
-CHECKPOINT_PATH = "checkpoint_smoke_test.pt"
+CHECKPOINT_PATH = pretrain_checkpoint("smoke_test")
 
 
 # ============================================================

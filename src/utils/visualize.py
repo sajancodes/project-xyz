@@ -20,11 +20,21 @@
 #
 # ============================================================
 
+import os
+import sys
+
 import torch
 import matplotlib.pyplot as plt
 import networkx as nx
 
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_106K, TOKENIZER_PATH as PATHS_TOKENIZER
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -34,9 +44,8 @@ from model_config import ModelConfig
 # SETTINGS
 # ============================================================
 
-CHECKPOINT = "checkpoint_fineweb.pt"
-TOKENIZER_PATH = "tokenizer.json"
-
+CHECKPOINT = CHECKPOINT_106K
+TOKENIZER_PATH = PATHS_TOKENIZER
 # Number of real dimensions shown per layer.
 #
 # Increase this later if desired.

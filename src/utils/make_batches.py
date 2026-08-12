@@ -1,11 +1,19 @@
+import os
+import sys
+
 from datasets import load_dataset
 from tokenizers import Tokenizer
 import torch
 
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import TOKENIZER_PATH
+
 DATASET = "HuggingFaceFW/fineweb"
 CONFIG = "CC-MAIN-2025-26"
-
-TOKENIZER_PATH = "tokenizer.json"
 
 SEQ_LEN = 512
 

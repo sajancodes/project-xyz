@@ -7,11 +7,19 @@ Records all experiments with full metadata for reproducibility.
 
 import json
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
-EXPERIMENTS_DIR = Path("experiments")
+from paths import EXPERIMENTS_DIR as PROJECT_EXPERIMENTS_DIR
+
+
+EXPERIMENTS_DIR = Path(PROJECT_EXPERIMENTS_DIR)
 RESULTS_FILE = EXPERIMENTS_DIR / "results.jsonl"
 SUMMARY_FILE = EXPERIMENTS_DIR / "summary.json"
 
@@ -178,7 +186,7 @@ def print_lineage():
     
     def print_node(node, indent=0):
         for child_info in lineage.get(node, []):
-            prefix = "  " * indent + "├─ "
+            prefix = "  " * indent + "|-- "
             print(f"{prefix}{child_info['child']} ({child_info['name']}, {child_info['steps']} steps)")
             print_node(child_info['child'], indent + 1)
     

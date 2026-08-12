@@ -50,12 +50,20 @@
 
 
 import os
+import sys
 import time
 
 import torch
 from torch.optim import AdamW
 from datasets import load_dataset
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_FINEWEB_LATEST, TOKENIZER_PATH as PATHS_TOKENIZER
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -91,12 +99,14 @@ CHECKPOINT_EVERY = 10000
 # Latest/current checkpoint.
 #
 # This file is intentionally overwritten.
-CHECKPOINT_PATH = "checkpoint_fineweb.pt"
+CHECKPOINT_PATH = CHECKPOINT_FINEWEB_LATEST
 
 DATASET = "HuggingFaceFW/fineweb"
 CONFIG = "CC-MAIN-2025-26"
 
-TOKENIZER_PATH = "tokenizer.json"
+TOKENIZER_PATH = PATHS_TOKENIZER
+
+os.makedirs(os.path.dirname(CHECKPOINT_PATH), exist_ok=True)
 
 
 # ============================================================
@@ -585,7 +595,10 @@ def save_checkpoint(
         )
 
         archive_name = (
-            f"{base_name}.pt"
+            os.path.join(
+                os.path.dirname(CHECKPOINT_PATH),
+                f"{base_name}.pt"
+            )
         )
 
         counter = 0

@@ -25,10 +25,23 @@
 # ============================================================
 
 import os
+import sys
 import time
 import torch
 from torch.optim import AdamW
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import (
+    CHECKPOINT_106K,
+    CHECKPOINT_SEMANTIC_5K,
+    SEMANTIC_DIR,
+    TOKENIZER_PATH as PATHS_TOKENIZER,
+)
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -49,10 +62,12 @@ MAX_STEPS = 5000
 LOG_EVERY = 50
 CHECKPOINT_EVERY = 50000
 
-BASE_CHECKPOINT = "checkpoint-106k.pt"
-OUTPUT_CHECKPOINT = "checkpoint_semantic_5k.pt"
+BASE_CHECKPOINT = CHECKPOINT_106K
+OUTPUT_CHECKPOINT = CHECKPOINT_SEMANTIC_5K
 
-TOKENIZER_PATH = "tokenizer.json"
+TOKENIZER_PATH = PATHS_TOKENIZER
+
+os.makedirs(SEMANTIC_DIR, exist_ok=True)
 
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
@@ -424,11 +439,9 @@ if not os.path.exists(BASE_CHECKPOINT):
 
     raise FileNotFoundError(
         f"\nCould not find {BASE_CHECKPOINT}\n\n"
-        "Make a copy of your original 106k FineWeb "
-        "checkpoint first.\n\n"
-        "Example:\n"
-        "Copy-Item checkpoint_fineweb.pt "
-        "checkpoint_fineweb_106k.pt"
+        "The pretrained 106k FineWeb checkpoint is expected at:\n"
+        f"  {CHECKPOINT_106K}\n\n"
+        "Copy your original 106k checkpoint there first if needed."
     )
 
 
@@ -728,8 +741,10 @@ def save_checkpoint(
     # Permanent archive.
 
     archive_name = (
-        f"checkpoint-semantic-{step}"
-        ".pt"
+        os.path.join(
+            SEMANTIC_DIR,
+            f"checkpoint-semantic-{step}.pt",
+        )
     )
 
     torch.save(

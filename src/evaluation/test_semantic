@@ -1,12 +1,21 @@
+import os
+import sys
+
 import torch
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_SEMANTIC_5K, TOKENIZER_PATH
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
 
 
-CHECKPOINT = "checkpoint-semantic-5000.pt"
-TOKENIZER_PATH = "tokenizer.json"
+CHECKPOINT = CHECKPOINT_SEMANTIC_5K
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

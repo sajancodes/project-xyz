@@ -2,10 +2,18 @@
 # Inject targeted factual knowledge: "the sun rises in the east"
 
 import os
+import sys
 import time
 import torch
 from torch.optim import AdamW
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_FINEWEB_LATEST, TOKENIZER_PATH as PATHS_TOKENIZER
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -24,8 +32,8 @@ MAX_STEPS = 5000      # Quick injection
 LOG_EVERY = 10
 CHECKPOINT_EVERY = 1000
 
-CHECKPOINT_PATH = "checkpoint_fineweb.pt"
-TOKENIZER_PATH = "tokenizer.json"
+CHECKPOINT_PATH = CHECKPOINT_FINEWEB_LATEST
+TOKENIZER_PATH = PATHS_TOKENIZER
 DEVICE = torch.device("cuda")
 
 # Targeted training data - repeat the fact many times

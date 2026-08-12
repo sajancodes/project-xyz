@@ -1,14 +1,25 @@
+import os
+import sys
+
 import torch
-from model import ModelConfig, SmallEnglishLLM
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_MIXED_2K, TOKENIZER_PATH
+
+from model import ModelConfig, SmallEnglishLLM
 
 
 # ============================================================
 # EXPERIMENT 1 — NATURAL LANGUAGE GENERATION TEST
 # ============================================================
 
-CHECKPOINT = "checkpoint-mixed-2k.pt"
-TOKENIZER_FILE = "tokenizer.json"
+CHECKPOINT = CHECKPOINT_MIXED_2K
+TOKENIZER_FILE = TOKENIZER_PATH
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

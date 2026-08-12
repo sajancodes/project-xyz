@@ -1,5 +1,15 @@
+import os
+import sys
+
 from datasets import load_dataset
 from tokenizers import Tokenizer, models, trainers, pre_tokenizers, decoders
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import TOKENIZER_PATH
 
 DATASET = "HuggingFaceFW/fineweb"
 CONFIG = "CC-MAIN-2025-26"
@@ -49,7 +59,7 @@ tokenizer.train_from_iterator(
 
 tokenizer.decoder = decoders.ByteLevel()
 
-tokenizer.save("tokenizer.json")
+tokenizer.save(TOKENIZER_PATH)
 
 print("Tokenizer created.")
 print(f"Vocabulary size: {tokenizer.get_vocab_size()}")

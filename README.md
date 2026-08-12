@@ -236,23 +236,24 @@ Run `python experiment_tracker.py lineage` to see checkpoint tree.
 
 | File | Purpose |
 |------|---------|
-| `model.py` | SmallEnglishLLM architecture (14.66M params) |
-| `model_config.py` | ModelConfig dataclass |
+| `src/models/model.py` | SmallEnglishLLM architecture (14.66M params) |
+| `src/config/model_config.py` | ModelConfig dataclass |
+| `src/paths.py` | Centralized project paths (checkpoints, tokenizer, data) |
 | `tokenizer.json` | 16k BPE tokenizer |
-| `train_fineweb.py` | Main FineWeb streaming training (resumable) |
-| `train_fineweb_fast.py` | Optimized FineWeb training (BF16, fused AdamW) |
-| `train_fact_injection.py` | Targeted fact injection (DEPRECATED) |
-| `train_fineweb_fast.py` | Semantic/instruction fine-tuning |
-| `train_mixed.py` | Mixed FineWeb + Semantic training (90/10) |
-| `evaluation_suite.py` | Comprehensive evaluation (9 test categories) |
-| `evaluate_grammar.py` | Grammar-only evaluation |
-| `test_sun.py` | Quick "sun rises" test |
-| `test_semantic` | Interactive semantic test |
-| `test.py` | Interactive generation |
-| `visualize.py` | Activation visualization |
-| `benchmark_training.py` | VRAM/throughput benchmark |
-| `experiment_tracker.py` | Experiment logging & lineage |
-| `checkpoint-*.pt` | Model checkpoints |
+| `src/training/train_fineweb.py` | Main FineWeb streaming training (resumable) |
+| `src/training/train_fineweb_fast.py` | Semantic/instruction fine-tuning |
+| `src/training/train_fact_injection.py` | Targeted fact injection (DEPRECATED) |
+| `src/training/train_mixed.py` | Mixed FineWeb + Semantic training (90/10) |
+| `src/evaluation/evaluation_suite.py` | Comprehensive evaluation (9 test categories) |
+| `src/evaluation/evaluate_grammar.py` | Grammar-only evaluation |
+| `src/evaluation/test_sun.py` | Quick "sun rises" test |
+| `src/evaluation/test_semantic` | Interactive semantic test |
+| `src/evaluation/test.py` | Interactive generation |
+| `src/utils/visualize.py` | Activation visualization |
+| `src/utils/benchmark_training.py` | VRAM/throughput benchmark |
+| `src/utils/experiment_tracker.py` | Experiment logging & lineage |
+| `checkpoints/pretrain/*.pt` | Pretraining checkpoints |
+| `checkpoints/mixed/*.pt` | Mixed training checkpoints |
 | `experiments/` | Evaluation results & experiment logs |
 
 ---
@@ -263,33 +264,32 @@ Run `python experiment_tracker.py lineage` to see checkpoint tree.
 # Activate environment
 .venv/Scripts/activate
 
-# FineWeb training (resumes from checkpoint_fineweb.pt)
-python train_fineweb.py
+# FineWeb training (resumes from checkpoints/pretrain/checkpoint_fineweb.pt)
+python src/training/train_fineweb.py
 
-# Semantic fine-tuning (from checkpoint-106k.pt)
-python train_fineweb_fast.py
+# Semantic fine-tuning (from checkpoints/pretrain/checkpoint-106k.pt)
+python src/training/train_fineweb_fast.py
 
-# Mixed FineWeb + Semantic training (from checkpoint-106k.pt)
-python train_mixed.py
+# Mixed FineWeb + Semantic training (from checkpoints/pretrain/checkpoint-106k.pt)
+python src/training/train_mixed.py
 
 # Full evaluation suite
-python evaluation_suite.py checkpoint-106k.pt --output experiments/eval_106k.json
-python evaluation_suite.py checkpoint-semantic-5000.pt --output experiments/eval_semantic.json
-python evaluation_suite.py checkpoint_fineweb.pt --output experiments/eval_110k.json
-python evaluation_suite.py checkpoint-mixed-2k.pt --output experiments/eval_mixed_2k.json
+python src/evaluation/evaluation_suite.py checkpoints/pretrain/checkpoint-106k.pt --output experiments/eval_106k.json
+python src/evaluation/evaluation_suite.py checkpoints/pretrain/checkpoint_fineweb.pt --output experiments/eval_110k.json
+python src/evaluation/evaluation_suite.py checkpoints/mixed/checkpoint-mixed-2k.pt --output experiments/eval_mixed_2k.json
 
 # Quick tests
-python test_sun.py
-python test_semantic
+python src/evaluation/test_sun.py
+python src/evaluation/test_semantic
 
 # Grammar only
-python evaluate_grammar.py
+python src/evaluation/evaluate_grammar.py
 
 # Interactive
-python test.py
+python src/evaluation/test.py
 
 # View lineage
-python experiment_tracker.py lineage
+python src/utils/experiment_tracker.py lineage
 ```
 
 ---

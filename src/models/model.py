@@ -1,8 +1,18 @@
 import math
+import os
+import sys
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+sys.path.insert(
+    0,
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "config",
+    )
+)
 
 from model_config import ModelConfig
 

@@ -1,9 +1,20 @@
+import os
+import sys
+
 import torch
-from model import ModelConfig, SmallEnglishLLM
 from tokenizers import Tokenizer
 
-CHECKPOINT = "checkpoint_fineweb.pt"
-TOKENIZER_FILE = "tokenizer.json"
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_MIXED_2K, TOKENIZER_PATH
+
+from model import ModelConfig, SmallEnglishLLM
+
+CHECKPOINT = CHECKPOINT_MIXED_2K
+TOKENIZER_FILE = TOKENIZER_PATH
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 MAX_NEW_TOKENS = 50
@@ -77,6 +88,6 @@ print("-" * 70)
 
 # Check if response contains "east"
 if "east" in continuation.lower():
-    print("✓ PASS: Model mentions 'east'")
+    print("PASS: Model mentions 'east'")
 else:
-    print("✗ FAIL: Model does NOT mention 'east'")
+    print("FAIL: Model does NOT mention 'east'")

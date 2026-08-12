@@ -1,8 +1,17 @@
+import os
+import sys
+
 from datasets import load_dataset
 from tokenizers import Tokenizer
 import statistics
 
-TOKENIZER_PATH = "tokenizer.json"
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import TOKENIZER_PATH
+
 NUM_DOCUMENTS = 10_000
 
 dataset = load_dataset(

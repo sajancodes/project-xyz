@@ -1,4 +1,14 @@
+import os
+import sys
+
 from datasets import load_dataset
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import FINEWEB_DATA_DIR
 
 dataset = load_dataset(
     "HuggingFaceFW/fineweb",
@@ -7,11 +17,17 @@ dataset = load_dataset(
     streaming=True,
 )
 
+os.makedirs(FINEWEB_DATA_DIR, exist_ok=True)
+
 target_bytes = 10 * 1024**3
 total_bytes = 0
 documents = 0
 
-with open("data/fineweb/fineweb_2025_26.txt", "w", encoding="utf-8") as f:
+with open(
+    os.path.join(FINEWEB_DATA_DIR, "fineweb_2025_26.txt"),
+    "w",
+    encoding="utf-8",
+) as f:
     for example in dataset:
         text = example["text"].strip()
 

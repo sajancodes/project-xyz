@@ -1,5 +1,15 @@
+import os
+import sys
+
 import torch
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import CHECKPOINT_106K, TOKENIZER_PATH as PATHS_TOKENIZER
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -9,8 +19,8 @@ from model_config import ModelConfig
 # EXPERIMENT 1 — GRAMMAR EVALUATION
 # ============================================================
 
-CHECKPOINT_PATH = "checkpoint_fineweb.pt"
-TOKENIZER_PATH = "tokenizer.json"
+CHECKPOINT_PATH = CHECKPOINT_106K
+TOKENIZER_PATH = PATHS_TOKENIZER
 
 DEVICE = torch.device(
     "cuda" if torch.cuda.is_available() else "cpu"
@@ -174,7 +184,7 @@ def evaluate_question(prefix, candidates, expected):
     )
 
     print(
-        f"Result:     {'PASS ✓' if correct else 'FAIL ✗'}"
+        f"Result:     {'PASS' if correct else 'FAIL'}"
     )
 
     print()

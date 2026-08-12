@@ -116,8 +116,8 @@ if __name__ == "__main__":
     print(f"Parameters (M)  : {total / 1_000_000:.2f}M")
 
     if 10_000_000 <= total <= 20_000_000:
-        print("Status          : ✓ Within 10–20M target")
+        print("Status          : OK (within 10-20M target)")
     else:
-        print("Status          : ✗ Outside 10–20M target")
+        print("Status          : FAIL (outside 10-20M target)")
 
     print("=" * 50)

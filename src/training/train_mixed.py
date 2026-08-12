@@ -9,11 +9,24 @@ Strategy: Each batch = 90% FineWeb tokens + 10% semantic tokens
 """
 
 import os
+import sys
 import time
 import torch
 from torch.optim import AdamW
 from datasets import load_dataset
 from tokenizers import Tokenizer
+
+sys.path.insert(
+    0,
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+
+from paths import (
+    CHECKPOINT_106K,
+    CHECKPOINT_MIXED_LATEST,
+    MIXED_DIR,
+    TOKENIZER_PATH as PATHS_TOKENIZER,
+)
 
 from model import SmallEnglishLLM
 from model_config import ModelConfig
@@ -38,9 +51,11 @@ FINEWEB_RATIO = 0.9           # 90% FineWeb
 SEMANTIC_RATIO = 0.1          # 10% semantic
 
 # Checkpoints
-BASE_CHECKPOINT = "checkpoint-106k.pt"
-OUTPUT_CHECKPOINT = "checkpoint_mixed_10k.pt"
-TOKENIZER_PATH = "tokenizer.json"
+BASE_CHECKPOINT = CHECKPOINT_106K
+OUTPUT_CHECKPOINT = CHECKPOINT_MIXED_LATEST
+TOKENIZER_PATH = PATHS_TOKENIZER
+
+os.makedirs(MIXED_DIR, exist_ok=True)
 
 DEVICE = torch.device("cuda")
 USE_BF16 = True
@@ -300,11 +315,17 @@ def main():
 
         # Archive
         step_k = step // 1000
-        archive_name = f"checkpoint-mixed-{step_k}k.pt"
+        archive_name = os.path.join(
+            MIXED_DIR,
+            f"checkpoint-mixed-{step_k}k.pt"
+        )
         counter = 0
         while os.path.exists(archive_name):
             counter += 1
-            archive_name = f"checkpoint-mixed-{step_k}k-{counter}.pt"
+            archive_name = os.path.join(
+                MIXED_DIR,
+                f"checkpoint-mixed-{step_k}k-{counter}.pt"
+            )
         torch.save(checkpoint_data, archive_name)
         print(f"  -> Archive saved: {archive_name}")
         print()
