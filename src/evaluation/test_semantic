@@ -1,0 +1,179 @@
+import torch
+from tokenizers import Tokenizer
+
+from model import SmallEnglishLLM
+from model_config import ModelConfig
+
+
+CHECKPOINT = "checkpoint-semantic-5000.pt"
+TOKENIZER_PATH = "tokenizer.json"
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+config = ModelConfig()
+
+tokenizer = Tokenizer.from_file(TOKENIZER_PATH)
+
+model = SmallEnglishLLM(config).to(DEVICE)
+
+checkpoint = torch.load(
+    CHECKPOINT,
+    map_location=DEVICE
+)
+
+model.load_state_dict(checkpoint["model_state_dict"])
+model.eval()
+
+print("=" * 70)
+print("SEMANTIC MODEL TEST")
+print("=" * 70)
+print("Checkpoint:", CHECKPOINT)
+print("Training step:", checkpoint.get("step"))
+print("Device:", DEVICE)
+print("=" * 70)
+
+
+def generate(prompt, max_new_tokens=80, temperature=0.7):
+
+    encoded = tokenizer.encode(prompt)
+
+    input_ids = torch.tensor(
+        [encoded.ids],
+        dtype=torch.long,
+        device=DEVICE
+    )
+
+    with torch.no_grad():
+
+        for _ in range(max_new_tokens):
+
+            # Keep context within model limit
+            input_context = input_ids[:, -config.max_seq_len:]
+
+            logits, _ = model(input_context)
+
+            next_logits = logits[:, -1, :]
+
+            # Temperature
+            next_logits = next_logits / temperature
+
+            probabilities = torch.softmax(
+                next_logits,
+                dim=-1
+            )
+
+            next_token = torch.multinomial(
+                probabilities,
+                num_samples=1
+            )
+
+            input_ids = torch.cat(
+                [input_ids, next_token],
+                dim=1
+            )
+
+            # Stop if tokenizer has an EOS token
+            if tokenizer.token_to_id("</s>") is not None:
+                if next_token.item() == tokenizer.token_to_id("</s>"):
+                    break
+
+    output = tokenizer.decode(
+        input_ids[0].tolist()
+    )
+
+    return output
+
+
+# ============================================================
+# FIXED SEMANTIC TESTS
+# ============================================================
+
+tests = [
+
+    "User: Where does the sun come up?\nAssistant:",
+
+    "User: What direction does sunrise happen?\nAssistant:",
+
+    "User: Sajan said that he is Sajan. What is his name?\nAssistant:",
+
+    "User: Ravi gave Sajan a book. Who received the book?\nAssistant:",
+
+    "User: The dog chased the cat. Who did the dog chase?\nAssistant:",
+
+    "User: The child is asleep. What is the child doing?\nAssistant:",
+
+    "User: What is 7 + 5?\nAssistant:",
+
+    "User: Complete this sentence: I ___ Sajan.\nAssistant:",
+
+    "User: Complete this sentence: They ___ happy.\nAssistant:",
+]
+
+
+for prompt in tests:
+
+    print()
+    print("-" * 70)
+    print("PROMPT:")
+    print(prompt)
+
+    result = generate(
+        prompt,
+        max_new_tokens=40,
+        temperature=0.3
+    )
+
+    print()
+    print("MODEL:")
+    print(result)
+
+
+# ============================================================
+# INTERACTIVE MODE
+# ============================================================
+
+print()
+print("=" * 70)
+print("INTERACTIVE SEMANTIC TEST")
+print("=" * 70)
+print("Type a question or statement.")
+print("Type 'exit' to quit.")
+print()
+
+while True:
+
+    user_text = input("You: ").strip()
+
+    if user_text.lower() == "exit":
+        break
+
+    if not user_text:
+        continue
+
+    prompt = (
+        "User: "
+        + user_text
+        + "\nAssistant:"
+    )
+
+    result = generate(
+        prompt,
+        max_new_tokens=80,
+        temperature=0.5
+    )
+
+    # Only display the generated continuation
+    if "Assistant:" in result:
+
+        answer = result.split(
+            "Assistant:",
+            1
+        )[1]
+
+    else:
+
+        answer = result
+
+    print()
+    print("Model:", answer.strip())
+    print()
