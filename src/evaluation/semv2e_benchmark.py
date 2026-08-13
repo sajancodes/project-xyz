@@ -460,7 +460,7 @@ class Semv2eBenchmarkEval:
             "checkpoint_info": self.checkpoint_info,
             "metadata": {
                 "parameter_count": params,
-                "device": self.device,
+                "device": str(self.device),
                 "decoding": "greedy(argmax)",
                 "temperature": 0.0,
                 "max_new_tokens": 20,
