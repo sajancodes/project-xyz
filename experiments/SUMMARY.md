@@ -1,7 +1,7 @@
 # Experiment Summary
 
-Last updated: 2026-08-12T18:11:01.622156
-Total experiments: 12
+Last updated: 2026-08-12T21:11:51.964146
+Total experiments: 14
 
 | Exp ID | Name | Parent | Steps | Tokens | LR | Batch | Train Loss | Val Loss | Grammar | Factual QA | Entity Rel | Paraphrase | Instruction | Reasoning | Checkpoint |
 |--------|------|--------|-------|--------|----|-------|------------|----------|---------|------------|------------|------------|-------------|-----------|------------|
@@ -17,3 +17,5 @@ Total experiments: 12
 | exp_0010 | Mixed FineWeb+Semant | checkpoint-106k.pt | 7000 | 57,344,000 | 0.0001 | 16 | 3.7130 | N/A | 44.4 | 71.4 | 100.0 | 100.0 | 16.7 | 50.0 | checkpoint-mixed-7k.pt |
 | exp_0011 | Mixed FineWeb+Semant | checkpoint-106k.pt | 8000 | 65,536,000 | 0.0001 | 16 | 3.3480 | N/A | 44.4 | 42.9 | 100.0 | 100.0 | 16.7 | 66.7 | checkpoint-mixed-8k.pt |
 | exp_0012 | Mixed FineWeb+Semant | checkpoint-106k.pt | 10000 | 81,920,000 | 0.0001 | 16 | 3.3610 | N/A | 44.4 | 28.6 | 100.0 | 100.0 | 16.7 | 33.3 | checkpoint-mixed-10k.pt |
+| exp_0013 | Semantic V2 Mixed (5 | checkpoint-106k.pt ( | 5000 | 40,960,000 | 0.0001 | 16 | 2.8435 | 3.7246 | N/A | N/A | N/A | N/A | N/A | N/A | checkpoints/semantic_v2/checkpoint_exp1_latest.pt |
+| exp_0014 | Semantic V2 EXP-2 (3 | checkpoint_exp1_late | 3000 | 24,576,000 | 5e-05 | 16 | 3.4830 | 3.5742 | N/A | N/A | N/A | N/A | N/A | N/A | checkpoints/semantic_v2/checkpoint_exp2_latest.pt |

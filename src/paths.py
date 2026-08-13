@@ -58,7 +58,9 @@ EXPERIMENTS_DIR = os.path.join(PROJECT_ROOT, "experiments")
 CHECKPOINTS_DIR = os.path.join(PROJECT_ROOT, "checkpoints")
 PRETRAIN_DIR = os.path.join(CHECKPOINTS_DIR, "pretrain")
 SEMANTIC_DIR = os.path.join(CHECKPOINTS_DIR, "semantic")
+SEMANTIC_V2_DIR = os.path.join(CHECKPOINTS_DIR, "semantic_v2")
 MIXED_DIR = os.path.join(CHECKPOINTS_DIR, "mixed")
+BEST_DIR = os.path.join(CHECKPOINTS_DIR, "best")
 
 
 # ------------------------------------------------------------
@@ -70,6 +72,8 @@ CHECKPOINT_FINEWEB_LATEST = os.path.join(PRETRAIN_DIR, "checkpoint_fineweb.pt")
 CHECKPOINT_SEMANTIC_5K = os.path.join(SEMANTIC_DIR, "checkpoint-semantic-5000.pt")
 CHECKPOINT_MIXED_2K = os.path.join(MIXED_DIR, "checkpoint-mixed-2k.pt")
 CHECKPOINT_MIXED_LATEST = os.path.join(MIXED_DIR, "checkpoint_mixed_10k.pt")
+CHECKPOINT_BEST = os.path.join(BEST_DIR, "checkpoint_best.pt")
+LATEST_CHECKPOINT = os.path.join(CHECKPOINTS_DIR, "latest_checkpoint.pt")
 
 
 def pretrain_checkpoint(step):
