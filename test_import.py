@@ -1,5 +1,4 @@
 import sys
-sys.path.insert(0, r'C:\Users\Sajan\Desktop\Project XYZ')
-import torch
-print(torch.__version__)
-print(torch.__file__)
+sys.path.insert(0, r'C:\Users\Sajan\Desktop\Project XYZ\src')
+import train_semantic_v2d
+print('Import OK')

@@ -1,2 +1,0 @@
-param($Path)
-& "$env:USERPROFILE\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\python.exe" -c "import sys; sys.path.insert(0, 'C:\Users\Sajan\Desktop\Project XYZ'); import torch; print(torch.__version__)"

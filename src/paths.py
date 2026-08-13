@@ -73,7 +73,8 @@ CHECKPOINT_SEMANTIC_5K = os.path.join(SEMANTIC_DIR, "checkpoint-semantic-5000.pt
 CHECKPOINT_MIXED_2K = os.path.join(MIXED_DIR, "checkpoint-mixed-2k.pt")
 CHECKPOINT_MIXED_LATEST = os.path.join(MIXED_DIR, "checkpoint_mixed_10k.pt")
 CHECKPOINT_BEST = os.path.join(BEST_DIR, "checkpoint_best.pt")
-LATEST_CHECKPOINT = os.path.join(CHECKPOINTS_DIR, "latest_checkpoint.pt")
+CHECKPOINT_SEMV2C_3000 = os.path.join(BEST_DIR, "checkpoint_semv2c-3000.pt")
+LATEST_CHECKPOINT = CHECKPOINT_SEMV2C_3000
 
 
 def pretrain_checkpoint(step):
