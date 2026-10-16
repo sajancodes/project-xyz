@@ -1,0 +1,43 @@
+{
+  "run_name": "project_xyz_k2style",
+  "seed": 42,
+  "model": {
+    "model_file": "src/models/model.py",
+    "model_class": "SmallEnglishLLM",
+    "config_file": "src/config/model_config.py",
+    "config_class": "ModelConfig",
+    "config_kwargs": {}
+  },
+  "data": {
+    "train_bin": "data/k2style/train.bin",
+    "valid_bin": "data/k2style/valid.bin",
+    "dtype": "auto",
+    "seq_len": 512,
+    "shuffle_blocks": true,
+    "num_workers": 0
+  },
+  "training": {
+    "steps": 10000,
+    "micro_batch_size": 2,
+    "gradient_accumulation_steps": 8,
+    "precision": "bf16",
+    "learning_rate": 0.0003,
+    "min_lr_ratio": 0.1,
+    "warmup_steps": 500,
+    "weight_decay": 0.1,
+    "beta1": 0.9,
+    "beta2": 0.95,
+    "eps": 1e-8,
+    "grad_clip": 1.0,
+    "compile": false,
+    "log_every": 10,
+    "eval_every": 500,
+    "eval_batches": 20,
+    "checkpoint_every": 500,
+    "keep_last_checkpoints": 3,
+    "resume": true
+  },
+  "output": {
+    "run_dir": "runs/project_xyz_k2style"
+  }
+}

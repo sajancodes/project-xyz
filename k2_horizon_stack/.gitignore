@@ -1,0 +1,6 @@
+_upstream/
+__pycache__/
+*.pyc
+*.bin
+*.bin.meta.json
+runs/

@@ -1,0 +1,7 @@
+# Install CUDA-enabled PyTorch separately for your system.
+# Example packages used by the Project XYZ K2-style local pipeline:
+numpy>=2.0
+tokenizers>=0.20
+datasets>=3.0
+huggingface_hub>=0.26
+tqdm>=4.66
