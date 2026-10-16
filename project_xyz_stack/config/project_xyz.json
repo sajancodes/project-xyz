@@ -1,5 +1,5 @@
 {
-  "run_name": "project_xyz_k2style",
+  "run_name": "project_xyz_pretraining",
   "seed": 42,
   "model": {
     "model_file": "src/models/model.py",
@@ -9,8 +9,8 @@
     "config_kwargs": {}
   },
   "data": {
-    "train_bin": "data/k2style/train.bin",
-    "valid_bin": "data/k2style/valid.bin",
+    "train_bin": "data/project_xyz/train.bin",
+    "valid_bin": "data/project_xyz/valid.bin",
     "dtype": "auto",
     "seq_len": 512,
     "shuffle_blocks": true,
@@ -38,6 +38,6 @@
     "resume": true
   },
   "output": {
-    "run_dir": "runs/project_xyz_k2style"
+    "run_dir": "runs/project_xyz_pretraining"
   }
 }

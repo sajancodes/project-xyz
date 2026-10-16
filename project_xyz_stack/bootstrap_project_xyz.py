@@ -22,11 +22,11 @@ def run(*cmd: str, cwd: Path | None = None) -> str:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Clone the official IFM stack used around K2 Horizon")
+    ap = argparse.ArgumentParser(description="Clone optional upstream training backends used by Project XYZ")
     ap.add_argument("--update", action="store_true", help="fast-forward clean existing clones")
     args = ap.parse_args()
 
-    root = Path(__file__).resolve().parent / "_upstream" / "ifm"
+    root = Path(__file__).resolve().parent / "_upstream" / "project_xyz_backends"
     root.mkdir(parents=True, exist_ok=True)
     lock = {}
 
@@ -43,10 +43,10 @@ def main() -> None:
         remote = run("git", "remote", "get-url", "origin", cwd=dst)
         lock[name] = {"remote": remote, "commit": sha}
 
-    lock_path = root / "UPSTREAM_LOCK.json"
+    lock_path = root / "PROJECT_XYZ_UPSTREAM_LOCK.json"
     lock_path.write_text(json.dumps(lock, indent=2), encoding="utf-8")
-    print(f"\nPinned upstream revisions written to {lock_path}")
-    print("Do not commit _upstream; the lock file is local provenance for the run you execute.")
+    print(f"\nPinned Project XYZ upstream revisions written to {lock_path}")
+    print("Do not commit _upstream; the lock file is local provenance for the Project XYZ run you execute.")
 
 
 if __name__ == "__main__":

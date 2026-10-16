@@ -49,7 +49,7 @@ def save_checkpoint(
 ) -> Path:
     raw_model = model.module if hasattr(model, "module") else model
     payload = {
-        "format": "project-xyz-k2style-checkpoint-v1",
+        "format": "project-xyz-checkpoint-v2",
         "step": step,
         "model": raw_model.state_dict(),
         "optimizer": optimizer.state_dict(),
@@ -81,6 +81,7 @@ def load_checkpoint(path: Path, model, optimizer=None, scheduler=None, scaler=No
 def write_run_manifest(run_dir: Path, config: dict[str, Any]) -> None:
     run_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
+        "project": "Project XYZ",
         "config": config,
         "torch": torch.__version__,
         "cuda_runtime": torch.version.cuda,

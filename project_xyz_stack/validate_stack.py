@@ -16,8 +16,8 @@ from model_adapter import build_model, forward_loss
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Validate the Project XYZ K2-style model bridge")
-    ap.add_argument("--config", default="k2_horizon_stack/config/project_xyz.json")
+    ap = argparse.ArgumentParser(description="Validate the Project XYZ model bridge")
+    ap.add_argument("--config", default="project_xyz_stack/config/project_xyz.json")
     ap.add_argument("--seq-len", type=int, default=32)
     ap.add_argument("--batch-size", type=int, default=2)
     args = ap.parse_args()
@@ -29,11 +29,9 @@ def main() -> None:
     model_cfg = getattr(model, "config", None)
     vocab_size = getattr(model_cfg, "vocab_size", None)
     if vocab_size is None:
-        # Project XYZ's current model stores vocab size in embeddings/config internals,
-        # so fall back to configured tokenizer vocabulary when available.
         cfg_module_path = Path(cfg["model"]["config_file"])
         import importlib.util
-        spec = importlib.util.spec_from_file_location("validate_dynamic_config", cfg_module_path)
+        spec = importlib.util.spec_from_file_location("project_xyz_validate_dynamic_config", cfg_module_path)
         module = importlib.util.module_from_spec(spec)
         assert spec and spec.loader
         spec.loader.exec_module(module)
@@ -51,6 +49,7 @@ def main() -> None:
 
     params = sum(p.numel() for p in model.parameters())
     result = {
+        "project": "Project XYZ",
         "ok": True,
         "parameters": params,
         "input_shape": list(x.shape),

@@ -18,7 +18,7 @@ from train import TokenBlockDataset
 
 @torch.no_grad()
 def main():
-    ap = argparse.ArgumentParser(description="Evaluate a Project XYZ K2-style checkpoint")
+    ap = argparse.ArgumentParser(description="Evaluate a Project XYZ checkpoint")
     ap.add_argument("--config", required=True)
     ap.add_argument("--checkpoint", required=True)
     ap.add_argument("--data", required=True)
@@ -52,6 +52,7 @@ def main():
 
     mean_loss = sum(losses) / max(1, len(losses))
     result = {
+        "project": "Project XYZ",
         "checkpoint": args.checkpoint,
         "step": int(payload.get("step", -1)),
         "batches": len(losses),
