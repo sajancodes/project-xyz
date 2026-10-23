@@ -584,57 +584,41 @@ Full glossary: [docs/GLOSSARY.md](docs/GLOSSARY.md)
 
 ---
 
-## Track B — Qwen3 4B Cybersecurity QLoRA
+## Track B — Qwen3 4B Pretrained SFT Track
 
-Track B introduces a high-parameter specialization track to Project XYZ, fine-tuning **Qwen/Qwen3-4B-Instruct-2507** using **4-bit NF4 QLoRA** on an **NVIDIA T4 GPU (16 GB VRAM)** in Google Colab.
+Track B introduces high-parameter foundational model adaptation to Project XYZ, fine-tuning **`Qwen/Qwen3-4B-Instruct-2507`** using **4-bit NF4 QLoRA** on an **NVIDIA T4 GPU (16 GB VRAM)** in Google Colab.
 
 ### 1. Conceptual Distinction from Track A
 - **Track A**: Small (14.66M) model trained from scratch to explore emergent semantic behavior from next-token pretraining.
-- **Track B**: 4B pretrained foundational model specialized via PEFT LoRA into an elite cybersecurity defensive assistant.
-- **Strict Separation**: Track B does NOT use Track A's tokenizer (	okenizer.json) or weights. It uses the official Qwen tokenizer, chat template, and original Hugging Face safetensors.
+- **Track B**: 4B pretrained foundational model specialized via PEFT LoRA into an elite coding and cybersecurity assistant.
+- **Strict Separation**: Track B does NOT use Track A's tokenizer (`tokenizer.json`) or weights. It uses the official Qwen tokenizer, chat template, and original Hugging Face safetensors.
 
-### 2. Architecture & Pipeline
-`
-Qwen3-4B-Instruct-2507 (Hugging Face Original Checkpoint)
-          ↓
-BitsAndBytes NF4 4-bit Runtime Quantization (Double Quant, FP16 compute)
-          ↓
-Baseline Benchmark (Pre-training scoring across cyber & regression suites)
-          ↓
-Cybersecurity Distillation Dataset (Sanitized, Exact/Near Dedup, 90/5/5 Split)
-          ↓
-Assistant-Only Loss Masking (System & User tokens masked with -100)
-          ↓
-QLoRA SFT Training (NVIDIA T4 GPU on Google Colab)
-          ↓
-Google Drive Persistence (Automatic checkpoints & resume)
-          ↓
-Reload Adapter & Post-Training Benchmark
-          ↓
-Before vs After Delta Comparison Report
-`
+### 2. Experiment Lineage
 
-### 3. Hyperparameters & T4 Optimization
-- **Quantization**: 4-bit NormalFloat (NF4), double quant enabled, loat16 compute dtype.
-- **LoRA Configuration**: Rank =32$, $lpha=64$, dropout .05$.
-- **Target Modules**: q_proj, k_proj, _proj, o_proj, gate_proj, up_proj, down_proj.
-- **Training Constraints**: Micro-batch size $, gradient accumulation $ (effective batch size $), max sequence length $ (configurable to $).
-- **Optimizer**: paged_adamw_8bit.
+#### Experiment V1: Initial Tiny-Dataset QLoRA (Historical Record)
+- **Dataset**: 12 training examples, 1 validation, 1 test.
+- **Setup**: LoRA $r=32, \alpha=64$, learning rate $2 \times 10^{-4}$, 3 epochs, sequence length 1024.
+- **Result & Finding**: The technical pipeline (NF4 4-bit loading, assistant-only loss masking, Drive checkpointing) executed cleanly, but the extreme undersizing of the dataset caused over-fitting and **measurable regression across broad benchmark categories**.
+- **Notebook**: [`notebooks/qwen3_4b_cyber_qlora_colab.ipynb`](notebooks/qwen3_4b_cyber_qlora_colab.ipynb) (preserved for reproducibility).
 
-### 4. Running the Colab Notebook
-1. Open 
-otebooks/qwen3_4b_cyber_qlora_colab.ipynb in VS Code.
-2. Select the **Google Colab** kernel and connect to an **NVIDIA T4 GPU**.
-3. Authorize Google Drive when prompted in Cell 5.
-4. Run cells sequentially through Cell 15.
-5. Execute the clearly marked **FINAL TRAINING CELL** (Cell 16) to begin training. Checkpoints automatically stream to MyDrive/ProjectXYZ/qwen3-4b-cyber/.
+#### Experiment V2: High-Volume 16K Streaming SFT (Coding + Capability Preservation)
+- **Dataset**: 16,000 unique examples progressively streamed with `load_dataset(..., streaming=True)`:
+  - **45% OpenCoder** (`educational_instruct`): 7,200 educational coding pairs with unit tests.
+  - **25% BigCode** (`self-oss-instruct-sc2-exec-filter-50k`): 4,000 execution-validated coding tasks.
+  - **20% SmolTalk** (`smol-magpie-ultra`): 3,200 general reasoning and instruction-following samples.
+  - **10% Cybersecurity** (`Trendyol` + curated seeds): 1,600 unique defensive security dialogues.
+- **Setup**: LoRA $r=16, \alpha=32$, learning rate **$5 \times 10^{-5}$**, effective batch size 16, **`max_steps=1000`** (16,000 example exposures), **`MAX_SEQ_LENGTH = 2048`**.
+- **Evaluation**: 60-task execution-based coding benchmark (sandboxed subprocess runner with unit tests) + 17-question multi-domain suite.
+- **Drive Persistence**: `MyDrive/ProjectXYZ/qwen3-4b-coding-stream-v2/`
+- **Notebook**: [`notebooks/qwen3_4b_coding_stream_qlora_colab.ipynb`](notebooks/qwen3_4b_coding_stream_qlora_colab.ipynb) (active experiment).
 
-### 5. Documentation Links
-- Detailed QLoRA Architecture: [docs/QWEN4B_QLORA.md](docs/QWEN4B_QLORA.md)
-- Cybersecurity Dataset Guide: [docs/CYBER_DATASET.md](docs/CYBER_DATASET.md)
-- Distillation & Safety Methodology: [docs/DISTILLATION.md](docs/DISTILLATION.md)
-- Evaluation & Benchmarking: [docs/QWEN4B_BENCHMARKS.md](docs/QWEN4B_BENCHMARKS.md)
+### 3. Documentation Links
+- Streaming SFT Architecture: [docs/STREAMING_SFT.md](docs/STREAMING_SFT.md)
+- Execution-Based Coding Benchmark: [docs/CODING_BENCHMARK.md](docs/CODING_BENCHMARK.md)
+- QLoRA Technical Guide: [docs/QWEN4B_QLORA.md](docs/QWEN4B_QLORA.md)
+- Multi-Domain Benchmarks: [docs/QWEN4B_BENCHMARKS.md](docs/QWEN4B_BENCHMARKS.md)
 - Colab & VS Code Guide: [docs/COLAB_TRAINING.md](docs/COLAB_TRAINING.md)
+- Experiment Lineage: [docs/EXPERIMENT_HISTORY.md](docs/EXPERIMENT_HISTORY.md)
 - Future Abliteration Isolation: [experiments/heretic/README.md](experiments/heretic/README.md)
 
 ---

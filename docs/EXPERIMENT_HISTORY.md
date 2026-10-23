@@ -91,3 +91,26 @@ Complete record of every experiment, with measured numbers only. Source: `experi
 ---
 
 *Related: [docs/PROJECT_HISTORY.md](PROJECT_HISTORY.md), [docs/TRAINING_GUIDE.md](TRAINING_GUIDE.md).*
+
+
+---
+
+## Track B: Qwen3-4B-Instruct Domain Specialization Experiments
+
+### Experiment V1 — Qwen 4B Tiny Seed QLoRA (Historical Baseline)
+- **Base Model**: `Qwen/Qwen3-4B-Instruct-2507`
+- **Dataset**: 12 training examples, 1 validation, 1 test.
+- **Hyperparameters**: LoRA $r=32, \alpha=64$, LR $2 \times 10^{-4}$, 3 epochs, seq len 1024.
+- **Observed Outcome**: Technically valid training loop and assistant masking, but the extreme undersizing of the dataset caused over-fitting and measurable regression across broad benchmark categories.
+- **Conclusion**: A tiny dataset (~12 samples) is insufficient for large-model domain adaptation. Replaced by high-volume streaming in Experiment V2.
+
+### Experiment V2 — Qwen 4B 16K Streaming Coding SFT
+- **Base Model**: `Qwen/Qwen3-4B-Instruct-2507`
+- **Dataset**: 16,000 unique examples consumed via progressive streaming without full disk downloads:
+  - 45% OpenCoder educational_instruct (7,200)
+  - 25% BigCode self-oss execution-filtered (4,000)
+  - 20% SmolTalk magpie-ultra (3,200)
+  - 10% Cybersecurity instruction dialogues (1,600)
+- **Hyperparameters**: LoRA $r=16, \alpha=32$, LR $5 \times 10^{-5}$, effective batch size 16, `max_steps=1000`, sequence length 2048.
+- **Evaluation**: 60-task execution-based coding benchmark (pass@1 sandbox execution) + 17-question multi-domain suite.
+- **Status**: Pipeline and notebook prepared for execution on Google Colab T4.
