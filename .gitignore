@@ -26,15 +26,48 @@ venv/
 env/
 ENV/
 
-# PyTorch checkpoints (large files - use Git LFS or external storage)
+# Large model files and weights
 *.pt
 *.pth
 *.bin
+*.safetensors
+*.onnx
+checkpoint*.pt
+checkpoint-10k.pt
+checkpoint-20k.pt
+checkpoint-50k.pt
+checkpoint-100k.pt
+checkpoint-106k.pt
+checkpoint-mixed-2k.pt
+checkpoints/
+adapters/
 
-# Data
-data/
+# Hugging Face and model caches
+.cache/
+hf_cache/
+models--*
+transformers_cache/
+
+# Credentials and secrets
+.env
+.env.*
+*credential*.json
+*secret*.json
+service_account*.json
+token.json
+
+# Data and large files
+data/*
+!data/qwen4b/
+!data/qwen4b/**
 *.json
 !tokenizer.json
+!data/qwen4b/*.json
+!configs/*.json
+!configs/*.yaml
+!configs/**
+!benchmarks/
+!benchmarks/**
 
 # Logs
 *.log
@@ -56,15 +89,7 @@ Thumbs.db
 # Experiments
 experiments/*.json
 experiments/*.jsonl
+!experiments/heretic/**
 
-# Large model files
-checkpoint*.pt
-checkpoint-10k.pt
-checkpoint-20k.pt
-checkpoint-50k.pt
-checkpoint-100k.pt
-checkpoint-106k.pt
-checkpoint-mixed-2k.pt
-checkpoints/
 # Wandb
 wandb/

@@ -1,0 +1,97 @@
+# Qwen3 4B Cybersecurity QLoRA Configuration
+# Target Hardware: Google Colab NVIDIA T4 (16GB VRAM)
+# Target Architecture: Pretrained Qwen3-4B-Instruct-2507 + NF4 QLoRA + Assistant Loss Masking
+
+model:
+  base_model_id: "Qwen/Qwen3-4B-Instruct-2507"
+  torch_dtype: "float16"
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: "float16"
+  device_map: "auto"
+  trust_remote_code: true
+  use_cache: false
+
+lora:
+  r: 32
+  lora_alpha: 64
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  fallback_r: 16
+  fallback_lora_alpha: 32
+
+training:
+  output_dir: "outputs/qwen3_4b_cyber"
+  drive_backup_dir: "/content/drive/MyDrive/ProjectXYZ/qwen3-4b-cyber"
+  checkpoints_dir: "checkpoints"
+  adapters_dir: "adapters"
+  benchmarks_dir: "benchmarks"
+  reports_dir: "reports"
+  logs_dir: "logs"
+  
+  micro_batch_size: 1
+  gradient_accumulation_steps: 16
+  eval_batch_size: 1
+  learning_rate: 0.0002
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  lr_scheduler_type: "cosine"
+  num_train_epochs: 3
+  max_seq_length: 1024
+  fallback_max_seq_length: 768
+  gradient_checkpointing: true
+  fp16: true
+  bf16: false
+  optim: "paged_adamw_8bit"
+  logging_steps: 10
+  eval_strategy: "steps"
+  eval_steps: 25
+  save_strategy: "steps"
+  save_steps: 25
+  save_total_limit: 3
+  seed: 42
+  report_to: "none"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  resume_from_checkpoint: null
+
+data:
+  raw_dir: "data/qwen4b/raw"
+  train_path: "data/qwen4b/processed/train.jsonl"
+  val_path: "data/qwen4b/processed/val.jsonl"
+  test_path: "data/qwen4b/processed/test.jsonl"
+  benchmark_path: "data/qwen4b/benchmarks/cyber_benchmark.jsonl"
+  stats_path: "data/qwen4b/stats.json"
+  stats_md_path: "data/qwen4b/stats.md"
+  train_ratio: 0.90
+  val_ratio: 0.05
+  test_ratio: 0.05
+  seed: 42
+
+benchmark:
+  temperature: 0.1
+  max_new_tokens: 512
+  categories:
+    - "cybersecurity_fundamentals"
+    - "networking_security"
+    - "secure_coding"
+    - "vulnerability_analysis"
+    - "incident_response"
+    - "log_analysis"
+    - "web_api_security"
+    - "cryptography"
+    - "cloud_container_security"
+    - "general_instruction"
+    - "reasoning"
+    - "coding"
