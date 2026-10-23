@@ -1,0 +1,81 @@
+# Qwen3 4B Coding & Capability Streaming QLoRA Configuration
+# Experiment V2: High-Volume Streaming SFT (16K target examples, max_steps=1000)
+# Target Hardware: Google Colab NVIDIA T4 (16GB VRAM)
+
+model:
+  base_model_id: "Qwen/Qwen3-4B-Instruct-2507"
+  torch_dtype: "float16"
+  load_in_4bit: true
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_compute_dtype: "float16"
+  device_map: "auto"
+  trust_remote_code: true
+  use_cache: false
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+training:
+  output_dir: "outputs/qwen3_4b_coding_stream_v2"
+  drive_backup_dir: "/content/drive/MyDrive/ProjectXYZ/qwen3-4b-coding-stream-v2"
+  checkpoints_dir: "checkpoints"
+  adapters_dir: "adapters"
+  benchmarks_dir: "benchmarks"
+  reports_dir: "reports"
+  logs_dir: "logs"
+  
+  micro_batch_size: 1
+  gradient_accumulation_steps: 16
+  eval_batch_size: 1
+  learning_rate: 0.00005     # 5e-5 for stable high-volume streaming SFT
+  weight_decay: 0.01
+  warmup_ratio: 0.05
+  lr_scheduler_type: "cosine"
+  max_steps: 1000            # 1000 steps * 16 effective batch = 16,000 exposures
+  max_seq_length: 2048       # Full coding context support
+  gradient_checkpointing: true
+  fp16: true
+  bf16: false
+  optim: "paged_adamw_8bit"
+  logging_steps: 10
+  eval_strategy: "steps"
+  eval_steps: 100
+  save_strategy: "steps"
+  save_steps: 100
+  save_total_limit: 3
+  seed: 42
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  early_stopping_patience: 3
+  resume_from_checkpoint: null
+
+streaming:
+  total_target: 16000
+  shuffle_buffer_size: 10000
+  quotas:
+    opencoder: 7200          # 45% OpenCoder educational_instruct
+    bigcode: 4000            # 25% BigCode self-oss execution-filtered
+    smoltalk: 3200           # 20% SmolTalk magpie-ultra
+    cybersecurity: 1600      # 10% Cybersecurity instruction
+  validation_target: 600
+  test_target: 400
+
+benchmarking:
+  num_coding_tasks: 60
+  coding_timeout_sec: 3.0
+  temperature: 0.1
+  max_new_tokens: 512
