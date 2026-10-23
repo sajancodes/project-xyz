@@ -1,0 +1,37 @@
+{
+  "raw_records_count": 14,
+  "accepted_records_count": 14,
+  "rejected_records_count": 0,
+  "exact_duplicates_filtered": 0,
+  "near_duplicates_filtered": 0,
+  "train_count": 12,
+  "validation_count": 1,
+  "test_count": 1,
+  "benchmark_count": 2,
+  "category_distribution": {
+    "networking": 2,
+    "secure_coding": 1,
+    "web_api_security": 1,
+    "linux_security": 1,
+    "windows_security": 1,
+    "cryptography": 1,
+    "incident_response": 1,
+    "cloud_security": 1,
+    "container_security": 1,
+    "threat_intelligence": 1,
+    "vulnerability_analysis": 1,
+    "general_instruction": 1,
+    "coding": 1
+  },
+  "difficulty_distribution": {
+    "intermediate": 8,
+    "advanced": 5,
+    "beginner": 1
+  },
+  "average_question_length_chars": 206.43,
+  "average_answer_length_chars": 1258.21,
+  "approximate_average_tokens": 391.79,
+  "min_tokens": 164,
+  "max_tokens": 514,
+  "rejection_breakdown": {}
+}

