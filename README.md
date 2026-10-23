@@ -10,12 +10,29 @@
 6. Read [Current State](#current-state) — exactly where the project stands today.
 7. Read [The SEMV2E Mission](#the-semv2e-mission) — the active controlled experiment.
 8. Follow the [Reproduction Guide](#reproduction-guide) when you are ready to run things.
+9. Read [Track B — Qwen3 4B Cybersecurity QLoRA](#track-b--qwen3-4b-cybersecurity-qlora) — the 4B domain specialization track.
 
 Detailed documentation lives in the `docs/` folder (links are included in each section below).
 
 ---
 
-## PROJECT OVERVIEW
+## PROJECT OVERVIEW: TWO DISTINCT RESEARCH TRACKS
+
+Project XYZ conceptually operates across two separate, non-interfering training tracks:
+
+| Dimension | Track A: Scratch Small English LLM | Track B: Qwen3 4B Cybersecurity QLoRA |
+|---|---|---|
+| **Base Model** | None (random init) | Pretrained Qwen/Qwen3-4B-Instruct-2507 |
+| **Parameters** | 14,657,664 (~14.66M) | ~4 Billion parameters |
+| **Tokenizer** | Custom 16k BPE (	okenizer.json) | Official Qwen Byte-Level BPE |
+| **Hardware** | Local Laptop GPU (RTX 4050, 6GB) | Google Colab NVIDIA T4 GPU (16GB VRAM) |
+| **Methodology** | Full pre-training + SFT from random init | 4-bit NF4 QLoRA + Assistant-Only Loss Masking |
+| **Core Goal** | Next-token prediction $	o$ semantic behavior | Enterprise-grade defensive cybersecurity specialization |
+| **Future Direction** | SEMV2E held-out semantic generalization | RION integration & isolated abliteration research |
+
+---
+
+## TRACK A: SMALL MODEL TRAINED FROM SCRATCH
 
 ### What are we trying to build?
 
@@ -562,6 +579,63 @@ Full checkpoint inventory and safety rules: [docs/CHECKPOINT_GUIDE.md](docs/CHEC
 | OOD | out-of-distribution / unseen |
 
 Full glossary: [docs/GLOSSARY.md](docs/GLOSSARY.md)
+
+---
+
+---
+
+## Track B — Qwen3 4B Cybersecurity QLoRA
+
+Track B introduces a high-parameter specialization track to Project XYZ, fine-tuning **Qwen/Qwen3-4B-Instruct-2507** using **4-bit NF4 QLoRA** on an **NVIDIA T4 GPU (16 GB VRAM)** in Google Colab.
+
+### 1. Conceptual Distinction from Track A
+- **Track A**: Small (14.66M) model trained from scratch to explore emergent semantic behavior from next-token pretraining.
+- **Track B**: 4B pretrained foundational model specialized via PEFT LoRA into an elite cybersecurity defensive assistant.
+- **Strict Separation**: Track B does NOT use Track A's tokenizer (	okenizer.json) or weights. It uses the official Qwen tokenizer, chat template, and original Hugging Face safetensors.
+
+### 2. Architecture & Pipeline
+`
+Qwen3-4B-Instruct-2507 (Hugging Face Original Checkpoint)
+          ↓
+BitsAndBytes NF4 4-bit Runtime Quantization (Double Quant, FP16 compute)
+          ↓
+Baseline Benchmark (Pre-training scoring across cyber & regression suites)
+          ↓
+Cybersecurity Distillation Dataset (Sanitized, Exact/Near Dedup, 90/5/5 Split)
+          ↓
+Assistant-Only Loss Masking (System & User tokens masked with -100)
+          ↓
+QLoRA SFT Training (NVIDIA T4 GPU on Google Colab)
+          ↓
+Google Drive Persistence (Automatic checkpoints & resume)
+          ↓
+Reload Adapter & Post-Training Benchmark
+          ↓
+Before vs After Delta Comparison Report
+`
+
+### 3. Hyperparameters & T4 Optimization
+- **Quantization**: 4-bit NormalFloat (NF4), double quant enabled, loat16 compute dtype.
+- **LoRA Configuration**: Rank =32$, $lpha=64$, dropout .05$.
+- **Target Modules**: q_proj, k_proj, _proj, o_proj, gate_proj, up_proj, down_proj.
+- **Training Constraints**: Micro-batch size $, gradient accumulation $ (effective batch size $), max sequence length $ (configurable to $).
+- **Optimizer**: paged_adamw_8bit.
+
+### 4. Running the Colab Notebook
+1. Open 
+otebooks/qwen3_4b_cyber_qlora_colab.ipynb in VS Code.
+2. Select the **Google Colab** kernel and connect to an **NVIDIA T4 GPU**.
+3. Authorize Google Drive when prompted in Cell 5.
+4. Run cells sequentially through Cell 15.
+5. Execute the clearly marked **FINAL TRAINING CELL** (Cell 16) to begin training. Checkpoints automatically stream to MyDrive/ProjectXYZ/qwen3-4b-cyber/.
+
+### 5. Documentation Links
+- Detailed QLoRA Architecture: [docs/QWEN4B_QLORA.md](docs/QWEN4B_QLORA.md)
+- Cybersecurity Dataset Guide: [docs/CYBER_DATASET.md](docs/CYBER_DATASET.md)
+- Distillation & Safety Methodology: [docs/DISTILLATION.md](docs/DISTILLATION.md)
+- Evaluation & Benchmarking: [docs/QWEN4B_BENCHMARKS.md](docs/QWEN4B_BENCHMARKS.md)
+- Colab & VS Code Guide: [docs/COLAB_TRAINING.md](docs/COLAB_TRAINING.md)
+- Future Abliteration Isolation: [experiments/heretic/README.md](experiments/heretic/README.md)
 
 ---
 
