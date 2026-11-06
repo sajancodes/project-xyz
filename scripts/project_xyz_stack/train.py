@@ -17,8 +17,8 @@ HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-from checkpointing import load_checkpoint, prune_checkpoints, save_checkpoint, write_run_manifest
-from model_adapter import build_model, forward_loss
+from scripts.project_xyz_stack.checkpointing import load_checkpoint, prune_checkpoints, save_checkpoint, write_run_manifest
+from scripts.project_xyz_stack.model_adapter import build_model, forward_loss
 
 
 class TokenBlockDataset(torch.utils.data.Dataset):

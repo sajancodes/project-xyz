@@ -12,8 +12,8 @@ HERE = Path(__file__).resolve().parent
 if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
-from model_adapter import build_model, forward_loss
-from train import TokenBlockDataset
+from scripts.project_xyz_stack.model_adapter import build_model, forward_loss
+from scripts.project_xyz_stack.train import TokenBlockDataset
 
 
 @torch.no_grad()
